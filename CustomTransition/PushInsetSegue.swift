@@ -45,36 +45,49 @@ class PushInsetSegue: UIStoryboardSegue {
   }
 }
 
- class PushInsetTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
+class PushInsetTransitioningDelegate: NSObject, UIViewControllerTransitioningDelegate {
   
   var callingSegue: UIStoryboardSegue?
   
-  func animationControllerForPresentedController(presented: UIViewController, presentingController presenting: UIViewController, sourceController source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+  func animationControllerForPresentedController(
+    presented: UIViewController,
+    presentingController presenting: UIViewController,
+    sourceController source: UIViewController)
+    -> UIViewControllerAnimatedTransitioning? {
     println("PushInsetTransitioningDelegate: animationControllerForPresentedController")
     return nil
   }
   
-  func animationControllerForDismissedController(dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+  func animationControllerForDismissedController(
+    dismissed: UIViewController)
+    -> UIViewControllerAnimatedTransitioning? {
     println("PushInsetTransitioningDelegate: animationControllerForDismissedController")
     callingSegue = nil
     return nil
   }
   
-  func interactionControllerForPresentation(animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+  func interactionControllerForPresentation(
+    animator: UIViewControllerAnimatedTransitioning)
+    -> UIViewControllerInteractiveTransitioning? {
     println("PushInsetTransitioningDelegate: interactionControllerForPresentation")
     return nil
   }
   
-  func interactionControllerForDismissal(animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+  func interactionControllerForDismissal(
+    animator: UIViewControllerAnimatedTransitioning)
+    -> UIViewControllerInteractiveTransitioning? {
     println("PushInsetTransitioningDelegate: interactionControllerForDismissal")
     return nil
   }
   
-  func presentationControllerForPresentedViewController(presented: UIViewController, presentingViewController presenting: UIViewController!, sourceViewController source: UIViewController) -> UIPresentationController? {
+  func presentationControllerForPresentedViewController(
+    presented: UIViewController,
+    presentingViewController presenting: UIViewController!,
+    sourceViewController source: UIViewController)
+    -> UIPresentationController? {
     println("PushInsetTransitioningDelegate: presentationControllerForPresentedViewController")
     return InsetPresentationController(presentedViewController: presented, presentingViewController: presenting)
   }
-  
 }
 
 class InsetPresentationController: UIPresentationController {
@@ -85,7 +98,7 @@ class InsetPresentationController: UIPresentationController {
     dimmingV.alpha = 0.0
     return dimmingV
     }()
- 
+
   override func presentationTransitionWillBegin() {
     println("InsetPresentationController: presentationTransitionWillBegin")
     containerView.addSubview(dimmingView)
@@ -94,7 +107,7 @@ class InsetPresentationController: UIPresentationController {
     transitionCoordinator?.animateAlongsideTransition(
       { _ in self.dimmingView.alpha = 1.0 }, completion: nil)
   }
-  
+
   override func presentationTransitionDidEnd(completed: Bool) {
     println("InsetPresentationController: presentationTransitionDidEnd")
     if (!completed) {
@@ -113,24 +126,25 @@ class InsetPresentationController: UIPresentationController {
   override func containerViewWillLayoutSubviews() {
     super.containerViewWillLayoutSubviews()
     presentedView().frame = insetFrame
-    dimmingView.frame = containerView.frame
+    dimmingView.frame = containerView.bounds
   }
+
   override func frameOfPresentedViewInContainerView() -> CGRect {
     
     return insetFrame
   }
-  
+
   var insetFrame: CGRect {
     
     let insetPctWidth:  CGFloat = PushInsetSegue.Const.InsetWidthPct
     let insetPctHeight: CGFloat = PushInsetSegue.Const.InsetHeightPct
     
-    let presentingRect = containerView.frame
+    let containerBounds = containerView.bounds
     
-    let insetX = presentingRect.size.width  * (100.0 - insetPctWidth)  / 100.0 / 2.0
-    let insetY = presentingRect.size.height * (100.0 - insetPctHeight) / 100.0 / 2.0
+    let insetX = containerBounds.size.width  * (100.0 - insetPctWidth)  / 100.0 / 2.0
+    let insetY = containerBounds.size.height * (100.0 - insetPctHeight) / 100.0 / 2.0
     
-    let insetRect = CGRectInset(presentingRect, insetX, insetY)
+    let insetRect = CGRectInset(containerBounds, insetX, insetY)
     
     return insetRect
   }
