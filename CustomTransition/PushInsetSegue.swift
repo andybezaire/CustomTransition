@@ -102,7 +102,7 @@ class InsetPresentationController: UIPresentationController {
   override func presentationTransitionWillBegin() {
     println("InsetPresentationController: presentationTransitionWillBegin")
     containerView.addSubview(dimmingView)
-    
+
     let transitionCoordinator = presentedViewController.transitionCoordinator()
     transitionCoordinator?.animateAlongsideTransition(
       { _ in self.dimmingView.alpha = 1.0 }, completion: nil)
@@ -114,38 +114,43 @@ class InsetPresentationController: UIPresentationController {
       dimmingView.removeFromSuperview()
     }
   }
-  
+
   override func dismissalTransitionWillBegin() {
     println("InsetPresentationController: dismissalTransitionWillBegin")
 
     let transitionCoordinator = presentedViewController.transitionCoordinator()
     transitionCoordinator?.animateAlongsideTransition(
       { _ in self.dimmingView.alpha = 0.0 }, completion: nil)
-}
+  }
 
-  override func containerViewWillLayoutSubviews() {
-    super.containerViewWillLayoutSubviews()
-    presentedView().frame = insetFrame
-    dimmingView.frame = containerView.bounds
+  override func sizeForChildContentContainer(container: UIContentContainer, withParentContainerSize parentSize: CGSize) -> CGSize {
+    println("InsetPresentationController: sizeForChildContentContainer")
+
+    let insetWidthPct:  CGFloat = PushInsetSegue.Const.InsetWidthPct  / 100.0
+    let insetHeightPct: CGFloat = PushInsetSegue.Const.InsetHeightPct / 100.0
+    
+    let insetWidth  = parentSize.width  * insetWidthPct
+    let insetHeight = parentSize.height * insetHeightPct
+    
+    return CGSize(width: insetWidth, height: insetHeight)
   }
 
   override func frameOfPresentedViewInContainerView() -> CGRect {
     
-    return insetFrame
+    let parentSize = containerView.bounds.size
+    let childSize = sizeForChildContentContainer(presentedViewController, withParentContainerSize: parentSize)
+    
+    // center the child in the parent frame
+    let originX = (parentSize.width  - childSize.width)  / 2.0
+    let originY = (parentSize.height - childSize.height) / 2.0
+    let insetOrigin = CGPoint(x: originX, y: originY)
+    
+    return CGRect(origin: insetOrigin, size: childSize)
   }
-
-  var insetFrame: CGRect {
-    
-    let insetPctWidth:  CGFloat = PushInsetSegue.Const.InsetWidthPct
-    let insetPctHeight: CGFloat = PushInsetSegue.Const.InsetHeightPct
-    
-    let containerBounds = containerView.bounds
-    
-    let insetX = containerBounds.size.width  * (100.0 - insetPctWidth)  / 100.0 / 2.0
-    let insetY = containerBounds.size.height * (100.0 - insetPctHeight) / 100.0 / 2.0
-    
-    let insetRect = CGRectInset(containerBounds, insetX, insetY)
-    
-    return insetRect
+  
+  override func containerViewWillLayoutSubviews() {
+    super.containerViewWillLayoutSubviews()
+    presentedView().frame = frameOfPresentedViewInContainerView()
+    dimmingView.frame = containerView.bounds
   }
 }
